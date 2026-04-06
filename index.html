@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bản đồ NPP và nhân viên - Hà Nội</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Bản đồ quản lý NPP và nhân viên</h1>
+            <p>Hà Nội - Chọn NPP và nhân viên để xem điểm bán</p>
+        </div>
+        
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label><i class="icon">🏪</i> Chọn NPP:</label>
+                <select id="regionFilter">
+                    <option value="">-- Chọn NPP --</option>
+                </select>
+            </div>
+            
+            <button id="resetFilterBtn" class="reset-btn" style="display: none;">
+                <i class="icon">🔄</i> Xóa bộ lọc
+            </button>
+            
+            <div class="stats-info" id="statsInfo"></div>
+        </div>
+        
+        <div class="employee-panel" id="employeePanel" style="display: none;">
+            <div class="employee-header">
+                <label><i class="icon">👥</i> Chọn nhân viên:</label>
+                <div class="employee-actions">
+                    <button id="selectAllBtn" class="action-btn">Chọn tất cả</button>
+                    <button id="unselectAllBtn" class="action-btn">Bỏ chọn tất cả</button>
+                </div>
+            </div>
+            <div class="employee-checkbox-group" id="employeeCheckboxGroup">
+                <!-- Checkbox sẽ được thêm động bằng JS -->
+            </div>
+        </div>
+        
+        <div id="map"></div>
+        
+        
+    </div>
+    
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
