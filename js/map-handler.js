@@ -100,59 +100,53 @@ class MapHandler {
         return marker;
     }
 
-    displayCustomersByGroups(yellowCustomers, redCustomers, blueCustomers, fromCount, toCount, hasBothMonths) {
-        this.clearMarkers();
-        const markers = [];
-        
-        const addMarkers = (customers, color) => {
-            customers.forEach(c => {
-                const lat = parseFloat(c.vi_do);
-                const lng = parseFloat(c.kinh_do);
-                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-                    markers.push(this.createMarker(lat, lng, c, color));
-                }
-            });
-        };
-        
-        addMarkers(yellowCustomers, '#FFD700');
-        addMarkers(redCustomers, '#E53E3E');
-        addMarkers(blueCustomers, '#3B82F6');
-        
-        if (markers.length > 0) {
-            this.markerCluster.addLayers(markers);
-            const bounds = [];
-            markers.forEach(m => { const ll = m.getLatLng(); if (ll) bounds.push(ll); });
-            if (bounds.length) this.map.fitBounds(L.latLngBounds(bounds).pad(0.1));
-        }
-        
-        const counterSpan = document.getElementById('customerCount');
-        if (counterSpan) {
-            if (hasBothMonths) counterSpan.textContent = `${fromCount} | ${toCount} khách hàng`;
-            else if (fromCount > 0) counterSpan.textContent = `${fromCount} khách hàng`;
-            else if (toCount > 0) counterSpan.textContent = `${toCount} khách hàng`;
-            else counterSpan.textContent = `0 khách hàng`;
-        }
-    }
 
-    displayAllRedCustomers(customers, totalCount) {
-        this.clearMarkers();
-        const markers = [];
+displayCustomersByGroups(yellowCustomers, redCustomers, blueCustomers, fromCount, toCount, hasBothMonths) {
+    this.clearMarkers();
+    const markers = [];
+    
+    const addMarkers = (customers, color) => {
         customers.forEach(c => {
             const lat = parseFloat(c.vi_do);
             const lng = parseFloat(c.kinh_do);
             if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-                markers.push(this.createMarker(lat, lng, c, '#E53E3E'));
+                markers.push(this.createMarker(lat, lng, c, color));
             }
         });
-        if (markers.length > 0) {
-            this.markerCluster.addLayers(markers);
-            const bounds = [];
-            markers.forEach(m => { const ll = m.getLatLng(); if (ll) bounds.push(ll); });
-            if (bounds.length) this.map.fitBounds(L.latLngBounds(bounds).pad(0.1));
-        }
-        const counterSpan = document.getElementById('customerCount');
-        if (counterSpan) counterSpan.textContent = `${totalCount} khách hàng`;
+    };
+    
+    addMarkers(yellowCustomers, '#FFD700');
+    addMarkers(redCustomers, '#E53E3E');
+    addMarkers(blueCustomers, '#3B82F6');
+    
+    if (markers.length > 0) {
+        this.markerCluster.addLayers(markers);
+        const bounds = [];
+        markers.forEach(m => { const ll = m.getLatLng(); if (ll) bounds.push(ll); });
+        if (bounds.length) this.map.fitBounds(L.latLngBounds(bounds).pad(0.1));
     }
+    
+    // Không cập nhật counter ở đây nữa, để main.js xử lý
+}
+
+displayAllRedCustomers(customers, totalCount) {
+    this.clearMarkers();
+    const markers = [];
+    customers.forEach(c => {
+        const lat = parseFloat(c.vi_do);
+        const lng = parseFloat(c.kinh_do);
+        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+            markers.push(this.createMarker(lat, lng, c, '#E53E3E'));
+        }
+    });
+    if (markers.length > 0) {
+        this.markerCluster.addLayers(markers);
+        const bounds = [];
+        markers.forEach(m => { const ll = m.getLatLng(); if (ll) bounds.push(ll); });
+        if (bounds.length) this.map.fitBounds(L.latLngBounds(bounds).pad(0.1));
+    }
+    // Không cập nhật counter ở đây nữa
+}
 
     addMarkerStyles() {
         if (!document.querySelector('#marker-styles')) {

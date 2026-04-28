@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bản đồ khách hàng - Mobiwork</title>
+    <title>Bản đồ khách hàng</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
@@ -12,20 +12,13 @@
 <body>
     <button class="toggle-sidebar-btn" id="toggleSidebarBtn">Ẩn/Hiện</button>
     
-    <div class="customer-counter" id="customerCounter">
-        📊 <span id="customerCount">0</span> khách hàng
+    <div class="customer-counter" id="customerCounter" style="display: none;">
+        <span id="customerCount">0</span>
     </div>
     
-    <!-- CHÚ THÍCH MÀU SẮC -->
-    <div class="color-legend-bar">
-        <span style="color: #FFD700;">🟡 cả 2 tháng</span>
-        <span style="color: #E53E3E; margin-left: 12px;">🔴 tháng đầu</span>
-        <span style="color: #3B82F6; margin-left: 12px;">🔵 tháng sau</span>
-    </div>
-    
-    <div class="container">
+    <div class="container" style="display: none;" id="mainContainer">
         <div class="sidebar" id="sidebar">
-            <h2>📍 Bộ lọc khách hàng</h2>
+            
             
             <div id="filterSection">
                 <div class="filter-group date-range-group">
@@ -72,15 +65,18 @@
                 
                 <div class="filter-group">
                     <label>🗺️ Khu vực:</label>
-                    <select id="areaFilter">
-                        <option value="all">-- Tất cả khu vực --</option>
-                        <option value="KV1">KV1</option>
-                        <option value="KV2">KV2</option>
-                        <option value="KV3">KV3</option>
-                        <option value="KV4">KV4</option>
-                        <option value="KV5">KV5</option>
-                        <option value="KV6">KV6</option>
-                    </select>
+                    <div class="select-with-count">
+                        <select id="areaFilter">
+                            <option value="all">-- Tất cả khu vực --</option>
+                            <option value="KV1">KV1</option>
+                            <option value="KV2">KV2</option>
+                            <option value="KV3">KV3</option>
+                            <option value="KV4">KV4</option>
+                            <option value="KV5">KV5</option>
+                            <option value="KV6">KV6</option>
+                        </select>
+                        <span class="area-count" id="areaCount"></span>
+                    </div>
                 </div>
                 
                 <div class="filter-group">
@@ -109,6 +105,23 @@
         </div>
         
         <div id="map"></div>
+    </div>
+    
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-container">
+            <div class="login-header">
+                <h2>🔐 ĐĂNG NHẬP HỆ THỐNG</h2>
+                <p>Nhập mã truy cập để tiếp tục</p>
+            </div>
+            <div class="login-body">
+                <input type="text" id="loginCode" class="login-input" placeholder="Nhập mã truy cập" maxlength="20">
+                <button id="loginBtn" class="login-btn">Đăng nhập</button>
+                <div id="loginError" class="login-error"></div>
+            </div>
+            <div class="login-footer">
+                <small>Liên hệ quản trị viên để được cấp mã</small>
+            </div>
+        </div>
     </div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
