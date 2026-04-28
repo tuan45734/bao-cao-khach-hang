@@ -11,7 +11,7 @@ const userPermissions = {
     'KV4YXY': 'KV4',
     'KV5XXZ': 'KV5',
     'KV6XBC': 'KV6',
-    'ADZAD': 'ALL'
+    'ADMIN99': 'ALL'
 };
 
 function setupLogin() {
