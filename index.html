@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -9,17 +10,18 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <button class="toggle-sidebar-btn" id="toggleSidebarBtn">Ẩn/Hiện</button>
-    
+
     <div class="customer-counter" id="customerCounter" style="display: none;">
         <span id="customerCount">0</span>
     </div>
-    
+
     <div class="container" style="display: none;" id="mainContainer">
         <div class="sidebar" id="sidebar">
-            
-            
+
+
             <div id="filterSection">
                 <div class="filter-group date-range-group">
                     <label>📅 Từ tháng:</label>
@@ -34,7 +36,7 @@
                         <span class="month-count" id="fromMonthCount"></span>
                     </div>
                 </div>
-                
+
                 <div class="filter-group date-range-group">
                     <label>📅 Đến tháng:</label>
                     <div class="select-with-count">
@@ -48,21 +50,21 @@
                         <span class="month-count" id="toMonthCount"></span>
                     </div>
                 </div>
-                
+
                 <div class="filter-group">
                     <label>📺 Kênh:</label>
                     <select id="channelFilter">
                         <option value="all">-- Tất cả kênh --</option>
                     </select>
                 </div>
-                
+
                 <div class="filter-group">
                     <label>🏷️ Loại:</label>
                     <select id="typeFilter">
                         <option value="all">-- Tất cả loại --</option>
                     </select>
                 </div>
-                
+
                 <div class="filter-group">
                     <label>🗺️ Khu vực:</label>
                     <div class="select-with-count">
@@ -78,35 +80,36 @@
                         <span class="area-count" id="areaCount"></span>
                     </div>
                 </div>
-                
+
                 <div class="filter-group">
                     <label>🏢 Nhà phân phối (NPP):</label>
                     <select id="nppFilter">
                         <option value="all">-- Chọn NPP --</option>
                     </select>
                 </div>
-                
+
                 <div class="filter-group">
                     <label>👤 Nhân viên:</label>
                     <select id="employeeFilter">
                         <option value="all">-- Chọn nhân viên --</option>
                     </select>
                 </div>
-                
+
                 <div class="filter-group">
                     <label>📦 Ngành hàng:</label>
                     <select id="categoryFilter">
-                        <option value="all">-- Tất cả ngành hàng --</option>
+                        <option value="">-- Tất cả ngành hàng --</option>
+                        <option value="all">-- Không chọn --</option>
                     </select>
                 </div>
-                
+
                 <button id="resetBtn">🔄 Xóa bộ lọc</button>
             </div>
         </div>
-        
+
         <div id="map"></div>
     </div>
-    
+
     <div id="loginOverlay" class="login-overlay">
         <div class="login-container">
             <div class="login-header">
@@ -123,7 +126,7 @@
             </div>
         </div>
     </div>
-    
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="data/kh.js"></script>
@@ -138,4 +141,5 @@
     <script src="js/map-handler.js"></script>
     <script src="js/main.js"></script>
 </body>
+
 </html>
