@@ -34,7 +34,7 @@ class MapHandler {
             spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
             zoomToBoundsOnClick: true,
-            disableClusteringAtZoom: 16,
+            disableClusteringAtZoom: 14,
             iconCreateFunction: function(cluster) {
                 const count = cluster.getChildCount();
                 let size = 40, fontSize = 12, bgColor = '#ff6600';

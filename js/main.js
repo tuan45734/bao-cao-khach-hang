@@ -1,7 +1,7 @@
 // js/main.js
 let mapHandler, areaHighlight;
 let currentCustomers = [];
-let dateRangeFilter, channelFilter, areaFilter, nppFilter, employeeFilter, categoryFilter;
+let dateRangeFilter, channelFilter, areaFilter, nppFilter, employeeFilter, categoryFilter, productFilter;
 let currentUserPermission = null;
 
 const userPermissions = {
@@ -136,22 +136,37 @@ function getCustomersByMonthAndCategory(monthKey, categoryName) {
     if (!monthKey || !categoryName || categoryName === 'all') return [];
     const mappingName = `categoryMapping_${monthKey.replace('-', '_')}`;
     const categoryMap = window[mappingName] || {};
-    return categoryMap[categoryName] || [];
+    const products = categoryMap[categoryName] || {};
+    const allCodes = new Set();
+    for (const product in products) {
+        const codes = products[product];
+        if (Array.isArray(codes)) {
+            codes.forEach(code => allCodes.add(code));
+        }
+    }
+    return Array.from(allCodes);
+}
+
+function getCustomersByMonthAndProduct(monthKey, productName) {
+    if (!monthKey || !productName) return [];
+    const mappingName = `categoryMapping_${monthKey.replace('-', '_')}`;
+    const categoryMap = window[mappingName] || {};
+    for (const category in categoryMap) {
+        const products = categoryMap[category];
+        if (products && products[productName]) {
+            return products[productName];
+        }
+    }
+    return [];
 }
 
 function getCustomersByAllCategory(categoryName) {
     if (!categoryName || categoryName === 'all') return [];
-    const categoryMap = window.categoryMapping_all || {};
-    return categoryMap[categoryName] || [];
+    return categoryFilter.getCustomerCodesByCategory(categoryName);
 }
 
 function getAllCustomerCodesFromAllCategories() {
-    const allMap = window.categoryMapping_all || {};
-    const allCodes = new Set();
-    Object.values(allMap).forEach(codes => {
-        codes.forEach(code => allCodes.add(code));
-    });
-    return Array.from(allCodes);
+    return categoryFilter.getAllCustomerCodes();
 }
 
 function getCustomersByArea(areaCode) {
@@ -190,6 +205,7 @@ function applyFilters() {
     const fromMonth = dateRangeFilter.getFromValue();
     const toMonth = dateRangeFilter.getToValue();
     const selectedCategory = categoryFilter.getValue();
+    const selectedProduct = productFilter ? productFilter.getValue() : '';
     
     let baseCustomers = currentCustomers;
     if (currentUserPermission && currentUserPermission !== 'ALL') {
@@ -199,44 +215,61 @@ function applyFilters() {
     const allFilteredCustomers = applyOtherFilters(baseCustomers);
     const allFilteredSet = new Set(allFilteredCustomers.map(c => c.ma_kh));
     
-    // Không chọn tháng nào
-    if (!fromMonth && !toMonth) {
-        if (selectedCategory === 'all') {
-            // Tất cả ngành hàng: hiển thị tất cả khách hàng
-            if (allFilteredCustomers.length > 0) {
-                mapHandler.displayAllRedCustomers(allFilteredCustomers, allFilteredCustomers.length);
-                updateCounterDisplay(null, null, false, null, null, allFilteredCustomers.length);
-            } else {
-                mapHandler.clearMarkers();
-                updateCounterDisplay(null, null, false, null, null, 0);
-            }
+    // Hàm lọc theo ngành hàng và sản phẩm
+    const filterByCategoryAndProduct = (customers, month) => {
+        let filtered = [...customers];
+        let customerSet = new Set(filtered.map(c => c.ma_kh));
+        
+        if (selectedProduct && selectedProduct !== '') {
+            const productCustomers = getCustomersByMonthAndProduct(month, selectedProduct);
+            const productSet = new Set(productCustomers);
+            filtered = filtered.filter(c => productSet.has(c.ma_kh));
+        } else if (selectedCategory === 'all') {
+            // Tất cả ngành hàng: giữ nguyên
         } else if (selectedCategory === '') {
-            // Không chọn ngành hàng: hiển thị khách hàng có trong 4 ngành
+            // Không chọn ngành hàng: lấy khách có trong 4 ngành
             const allCategoryCodes = getAllCustomerCodesFromAllCategories();
             const categorySet = new Set(allCategoryCodes);
-            const categoryCustomers = baseCustomers.filter(c => categorySet.has(c.ma_kh));
-            const finalCustomers = applyOtherFilters(categoryCustomers);
-            if (finalCustomers.length > 0) {
-                mapHandler.displayAllRedCustomers(finalCustomers, finalCustomers.length);
-                updateCounterDisplay(null, null, false, null, null, finalCustomers.length);
-            } else {
-                mapHandler.clearMarkers();
-                updateCounterDisplay(null, null, false, null, null, 0);
-            }
+            filtered = filtered.filter(c => categorySet.has(c.ma_kh));
         } else {
             // Chọn ngành hàng cụ thể
-            const categoryCustomerCodes = getCustomersByAllCategory(selectedCategory);
-            const categoryCustomers = categoryCustomerCodes
-                .map(code => baseCustomers.find(c => c.ma_kh === code))
-                .filter(c => c);
-            const finalCustomers = applyOtherFilters(categoryCustomers);
-            if (finalCustomers.length > 0) {
-                mapHandler.displayAllRedCustomers(finalCustomers, finalCustomers.length);
-                updateCounterDisplay(null, null, false, null, null, finalCustomers.length);
-            } else {
-                mapHandler.clearMarkers();
-                updateCounterDisplay(null, null, false, null, null, 0);
-            }
+            const categoryCustomers = getCustomersByMonthAndCategory(month, selectedCategory);
+            const categorySet = new Set(categoryCustomers);
+            filtered = filtered.filter(c => categorySet.has(c.ma_kh));
+        }
+        
+        return filtered;
+    };
+    
+    // Không chọn tháng nào
+    if (!fromMonth && !toMonth) {
+        let finalCustomers = [...allFilteredCustomers];
+        
+        if (selectedProduct && selectedProduct !== '') {
+            // Lấy từ nh-all.js
+            const productCustomers = productFilter.getCustomersByProduct(selectedProduct);
+            const productSet = new Set(productCustomers);
+            finalCustomers = finalCustomers.filter(c => productSet.has(c.ma_kh));
+        } else if (selectedCategory === 'all') {
+            // Tất cả ngành hàng: giữ nguyên
+        } else if (selectedCategory === '') {
+            const allCategoryCodes = getAllCustomerCodesFromAllCategories();
+            const categorySet = new Set(allCategoryCodes);
+            finalCustomers = finalCustomers.filter(c => categorySet.has(c.ma_kh));
+        } else {
+            const categoryCustomers = categoryFilter.getCustomerCodesByCategory(selectedCategory);
+            const categorySet = new Set(categoryCustomers);
+            finalCustomers = finalCustomers.filter(c => categorySet.has(c.ma_kh));
+        }
+        
+        finalCustomers = applyOtherFilters(finalCustomers);
+        
+        if (finalCustomers.length > 0) {
+            mapHandler.displayAllRedCustomers(finalCustomers, finalCustomers.length);
+            updateCounterDisplay(null, null, false, null, null, finalCustomers.length);
+        } else {
+            mapHandler.clearMarkers();
+            updateCounterDisplay(null, null, false, null, null, 0);
         }
         updateAreaCountDisplay();
         return;
@@ -246,21 +279,7 @@ function applyFilters() {
     if (fromMonth && !toMonth) {
         let finalCustomers = dateRangeFilter.getCustomersUptoMonth(fromMonth);
         finalCustomers = finalCustomers.filter(c => allFilteredSet.has(c.ma_kh));
-        
-        if (selectedCategory === 'all') {
-            // Tất cả ngành hàng
-        } else if (selectedCategory === '') {
-            // Không chọn ngành hàng: chỉ lấy khách có trong 4 ngành
-            const allCategoryCodes = getAllCustomerCodesFromAllCategories();
-            const categorySet = new Set(allCategoryCodes);
-            finalCustomers = finalCustomers.filter(c => categorySet.has(c.ma_kh));
-        } else {
-            // Chọn ngành hàng cụ thể
-            const categoryCustomerCodes = getCustomersByMonthAndCategory(fromMonth, selectedCategory);
-            const categorySet = new Set(categoryCustomerCodes);
-            finalCustomers = finalCustomers.filter(c => categorySet.has(c.ma_kh));
-        }
-        
+        finalCustomers = filterByCategoryAndProduct(finalCustomers, fromMonth);
         finalCustomers = applyOtherFilters(finalCustomers);
         
         if (finalCustomers.length > 0) {
@@ -278,21 +297,7 @@ function applyFilters() {
     if (toMonth && !fromMonth) {
         let finalCustomers = dateRangeFilter.getCustomersUptoMonth(toMonth);
         finalCustomers = finalCustomers.filter(c => allFilteredSet.has(c.ma_kh));
-        
-        if (selectedCategory === 'all') {
-            // Tất cả ngành hàng
-        } else if (selectedCategory === '') {
-            // Không chọn ngành hàng: chỉ lấy khách có trong 4 ngành
-            const allCategoryCodes = getAllCustomerCodesFromAllCategories();
-            const categorySet = new Set(allCategoryCodes);
-            finalCustomers = finalCustomers.filter(c => categorySet.has(c.ma_kh));
-        } else {
-            // Chọn ngành hàng cụ thể
-            const categoryCustomerCodes = getCustomersByMonthAndCategory(toMonth, selectedCategory);
-            const categorySet = new Set(categoryCustomerCodes);
-            finalCustomers = finalCustomers.filter(c => categorySet.has(c.ma_kh));
-        }
-        
+        finalCustomers = filterByCategoryAndProduct(finalCustomers, toMonth);
         finalCustomers = applyOtherFilters(finalCustomers);
         
         if (finalCustomers.length > 0) {
@@ -314,72 +319,26 @@ function applyFilters() {
         let filteredFrom = fromCustomers.filter(c => allFilteredSet.has(c.ma_kh));
         let filteredTo = toCustomers.filter(c => allFilteredSet.has(c.ma_kh));
         
-        let redRaw = [], blueRaw = [], yellowRaw = [];
-        let fromCount = 0, toCount = 0;
+        // Lọc theo ngành hàng/sản phẩm cho từng tháng
+        filteredFrom = filterByCategoryAndProduct(filteredFrom, fromMonth);
+        filteredTo = filterByCategoryAndProduct(filteredTo, toMonth);
         
-        if (selectedCategory === 'all') {
-            // Tất cả ngành hàng: lấy tất cả khách hàng đã lọc
-            const fromSet = new Set(filteredFrom.map(c => c.ma_kh));
-            const toSet = new Set(filteredTo.map(c => c.ma_kh));
-            
-            redRaw = filteredFrom.filter(c => !toSet.has(c.ma_kh));
-            blueRaw = filteredTo.filter(c => !fromSet.has(c.ma_kh));
-            yellowRaw = filteredFrom.filter(c => toSet.has(c.ma_kh));
-            
-            fromCount = redRaw.length + yellowRaw.length;
-            toCount = blueRaw.length + yellowRaw.length;
-            
-            mapHandler.displayCustomersByGroups(yellowRaw, redRaw, blueRaw, fromCount, toCount, true);
+        const fromSet = new Set(filteredFrom.map(c => c.ma_kh));
+        const toSet = new Set(filteredTo.map(c => c.ma_kh));
+        
+        const redRaw = filteredFrom.filter(c => !toSet.has(c.ma_kh));
+        const blueRaw = filteredTo.filter(c => !fromSet.has(c.ma_kh));
+        const yellowRaw = filteredFrom.filter(c => toSet.has(c.ma_kh));
+        
+        const fromCount = redRaw.length + yellowRaw.length;
+        const toCount = blueRaw.length + yellowRaw.length;
+        
+        if (yellowRaw.length === 0 && redRaw.length === 0 && blueRaw.length === 0) {
+            mapHandler.clearMarkers();
             updateCounterDisplay(fromCount, toCount, true, fromMonth, toMonth, null, redRaw.length, blueRaw.length, yellowRaw.length);
-            
-        } else if (selectedCategory === '') {
-            // Không chọn ngành hàng: chỉ lấy khách hàng có mua trong 4 ngành hàng
-            const allCategoryCodes = getAllCustomerCodesFromAllCategories();
-            const allCategorySet = new Set(allCategoryCodes);
-            
-            const fromInCategory = filteredFrom.filter(c => allCategorySet.has(c.ma_kh));
-            const toInCategory = filteredTo.filter(c => allCategorySet.has(c.ma_kh));
-            
-            const fromCatSet = new Set(fromInCategory.map(c => c.ma_kh));
-            const toCatSet = new Set(toInCategory.map(c => c.ma_kh));
-            
-            redRaw = fromInCategory.filter(c => !toCatSet.has(c.ma_kh));
-            blueRaw = toInCategory.filter(c => !fromCatSet.has(c.ma_kh));
-            yellowRaw = fromInCategory.filter(c => toCatSet.has(c.ma_kh));
-            
-            fromCount = redRaw.length + yellowRaw.length;
-            toCount = blueRaw.length + yellowRaw.length;
-            
-            mapHandler.displayCustomersByGroups(yellowRaw, redRaw, blueRaw, fromCount, toCount, true);
-            updateCounterDisplay(fromCount, toCount, true, fromMonth, toMonth, null, redRaw.length, blueRaw.length, yellowRaw.length);
-            
         } else {
-            // Chọn ngành hàng cụ thể
-            const fromCustomerCodes = getCustomersByMonthAndCategory(fromMonth, selectedCategory);
-            const toCustomerCodes = getCustomersByMonthAndCategory(toMonth, selectedCategory);
-            const fromCodeSet = new Set(fromCustomerCodes);
-            const toCodeSet = new Set(toCustomerCodes);
-            
-            const getCustomerByCode = (code) => baseCustomers.find(c => c.ma_kh === code);
-            
-            const onlyFromCodes = [...fromCodeSet].filter(code => !toCodeSet.has(code));
-            const onlyToCodes = [...toCodeSet].filter(code => !fromCodeSet.has(code));
-            const bothCodes = [...fromCodeSet].filter(code => toCodeSet.has(code));
-            
-            let rawRed = onlyFromCodes.map(code => getCustomerByCode(code)).filter(c => c);
-            let rawBlue = onlyToCodes.map(code => getCustomerByCode(code)).filter(c => c);
-            let rawYellow = bothCodes.map(code => getCustomerByCode(code)).filter(c => c);
-            
-            // Áp dụng các bộ lọc khác
-            rawRed = applyOtherFilters(rawRed);
-            rawBlue = applyOtherFilters(rawBlue);
-            rawYellow = applyOtherFilters(rawYellow);
-            
-            fromCount = rawRed.length + rawYellow.length;
-            toCount = rawBlue.length + rawYellow.length;
-            
-            mapHandler.displayCustomersByGroups(rawYellow, rawRed, rawBlue, fromCount, toCount, true);
-            updateCounterDisplay(fromCount, toCount, true, fromMonth, toMonth, null, rawRed.length, rawBlue.length, rawYellow.length);
+            mapHandler.displayCustomersByGroups(yellowRaw, redRaw, blueRaw, fromCount, toCount, true);
+            updateCounterDisplay(fromCount, toCount, true, fromMonth, toMonth, null, redRaw.length, blueRaw.length, yellowRaw.length);
         }
         
         updateAreaCountDisplay();
@@ -442,6 +401,7 @@ async function initApp() {
         nppFilter = new NPPFilter('nppFilter', currentCustomers, areaHighlight);
         employeeFilter = new EmployeeFilter('employeeFilter', currentCustomers, areaHighlight);
         categoryFilter = new CategoryFilter('categoryFilter');
+        productFilter = new ProductFilter('productFilter');
         
         applyPermissionToAreaFilter();
         
@@ -466,13 +426,20 @@ async function initApp() {
             applyFilters();
         });
         
+        categoryFilter.setOnChangeCallback(() => {
+            const selectedCategory = categoryFilter.getValue();
+            productFilter.updateOptionsByCategory(selectedCategory);
+            applyFilters();
+        });
+        
+        productFilter.setOnChangeCallback(() => applyFilters());
         channelFilter.setOnChangeCallback(() => applyFilters());
         areaFilter.setOnChangeCallback(() => applyFilters());
         nppFilter.setOnChangeCallback(() => applyFilters());
         employeeFilter.setOnChangeCallback(() => applyFilters());
-        categoryFilter.setOnChangeCallback(() => applyFilters());
         
         categoryFilter.initOptions();
+        productFilter.initOptions();
         
         const initialArea = areaFilter.getValue();
         const initialNPPs = areaFilter.getNPPsByArea(initialArea);
@@ -505,6 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nppFilter?.reset();
         employeeFilter?.reset();
         categoryFilter?.reset();
+        productFilter?.reset();
         
         const currentArea = areaFilter.getValue();
         const nppsInArea = areaFilter.getNPPsByArea(currentArea);

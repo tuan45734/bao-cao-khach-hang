@@ -9,7 +9,8 @@ class MonthFilter {
             '1-2026': { name: 'Tháng 1/2026', file: 'nh-1-2026.js', mapping: null },
             '2-2026': { name: 'Tháng 2/2026', file: 'nh-2-2026.js', mapping: null },
             '3-2026': { name: 'Tháng 3/2026', file: 'nh-3-2026.js', mapping: null },
-            '4-2026': { name: 'Tháng 4/2026', file: 'nh-4-2026.js', mapping: null }
+            '4-2026': { name: 'Tháng 4/2026', file: 'nh-4-2026.js', mapping: null },
+            '5-2026': { name: 'Tháng 5/2026', file: 'nh-5-2026.js', mapping: null }
         };
         
         this.initEvent();

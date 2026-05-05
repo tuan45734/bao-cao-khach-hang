@@ -1,4 +1,4 @@
-// js/filters/category-filter.js
+// js/filters/category-filter.js - Bộ lọc ngành hàng
 class CategoryFilter {
     constructor(elementId) {
         this.element = document.getElementById(elementId);
@@ -30,9 +30,31 @@ class CategoryFilter {
     getAllCustomerCodes() {
         const allMap = this.getAllCategoryMap();
         const allCodes = new Set();
-        Object.values(allMap).forEach(codes => {
-            codes.forEach(code => allCodes.add(code));
-        });
+        for (const category in allMap) {
+            const products = allMap[category];
+            if (products && typeof products === 'object') {
+                for (const product in products) {
+                    const codes = products[product];
+                    if (Array.isArray(codes)) {
+                        codes.forEach(code => allCodes.add(code));
+                    }
+                }
+            }
+        }
+        return Array.from(allCodes);
+    }
+    
+    getCustomerCodesByCategory(categoryName) {
+        if (!categoryName || categoryName === 'all') return [];
+        const allMap = this.getAllCategoryMap();
+        const products = allMap[categoryName] || {};
+        const allCodes = new Set();
+        for (const product in products) {
+            const codes = products[product];
+            if (Array.isArray(codes)) {
+                codes.forEach(code => allCodes.add(code));
+            }
+        }
         return Array.from(allCodes);
     }
     
@@ -49,7 +71,6 @@ class CategoryFilter {
         if (!this.element) return;
         const categoryMap = this.getCategoryMap(monthKey);
         const categories = Object.keys(categoryMap).sort();
-        
         this.element.innerHTML = '<option value="">-- Tất cả ngành hàng --</option><option value="all">-- Không chọn --</option>';
         categories.forEach(cat => {
             const option = document.createElement('option');
@@ -57,9 +78,7 @@ class CategoryFilter {
             option.textContent = cat;
             this.element.appendChild(option);
         });
-        
         this.element.disabled = (categories.length === 0);
-        
         if (this.currentValue !== '' && this.currentValue !== 'all' && !categories.includes(this.currentValue)) {
             this.element.value = '';
             this.currentValue = '';
@@ -70,7 +89,6 @@ class CategoryFilter {
         if (!this.element) return;
         const categoryMap = this.getAllCategoryMap();
         const categories = Object.keys(categoryMap).sort();
-        
         this.element.innerHTML = '<option value="">-- Tất cả ngành hàng --</option><option value="all">-- Không chọn --</option>';
         categories.forEach(cat => {
             const option = document.createElement('option');
@@ -78,9 +96,7 @@ class CategoryFilter {
             option.textContent = cat;
             this.element.appendChild(option);
         });
-        
         this.element.disabled = (categories.length === 0);
-        
         if (this.currentValue !== '' && this.currentValue !== 'all' && !categories.includes(this.currentValue)) {
             this.element.value = '';
             this.currentValue = '';
