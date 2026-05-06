@@ -3,6 +3,8 @@ let mapHandler, areaHighlight;
 let currentCustomers = [];
 let dateRangeFilter, channelFilter, areaFilter, nppFilter, employeeFilter, categoryFilter, productFilter;
 let currentUserPermission = null;
+let apiCustomersManager = null;
+let showInternalCustomers = true;
 
 const userPermissions = {
     'KV1ADZ': 'KV1',
@@ -160,11 +162,6 @@ function getCustomersByMonthAndProduct(monthKey, productName) {
     return [];
 }
 
-function getCustomersByAllCategory(categoryName) {
-    if (!categoryName || categoryName === 'all') return [];
-    return categoryFilter.getCustomerCodesByCategory(categoryName);
-}
-
 function getAllCustomerCodesFromAllCategories() {
     return categoryFilter.getAllCustomerCodes();
 }
@@ -201,7 +198,7 @@ function applyOtherFilters(customers) {
     return result;
 }
 
-function applyFilters() {
+function getFilteredInternalCustomers() {
     const fromMonth = dateRangeFilter.getFromValue();
     const toMonth = dateRangeFilter.getToValue();
     const selectedCategory = categoryFilter.getValue();
@@ -215,10 +212,8 @@ function applyFilters() {
     const allFilteredCustomers = applyOtherFilters(baseCustomers);
     const allFilteredSet = new Set(allFilteredCustomers.map(c => c.ma_kh));
     
-    // Hàm lọc theo ngành hàng và sản phẩm
     const filterByCategoryAndProduct = (customers, month) => {
         let filtered = [...customers];
-        let customerSet = new Set(filtered.map(c => c.ma_kh));
         
         if (selectedProduct && selectedProduct !== '') {
             const productCustomers = getCustomersByMonthAndProduct(month, selectedProduct);
@@ -227,12 +222,10 @@ function applyFilters() {
         } else if (selectedCategory === 'all') {
             // Tất cả ngành hàng: giữ nguyên
         } else if (selectedCategory === '') {
-            // Không chọn ngành hàng: lấy khách có trong 4 ngành
             const allCategoryCodes = getAllCustomerCodesFromAllCategories();
             const categorySet = new Set(allCategoryCodes);
             filtered = filtered.filter(c => categorySet.has(c.ma_kh));
         } else {
-            // Chọn ngành hàng cụ thể
             const categoryCustomers = getCustomersByMonthAndCategory(month, selectedCategory);
             const categorySet = new Set(categoryCustomers);
             filtered = filtered.filter(c => categorySet.has(c.ma_kh));
@@ -241,85 +234,47 @@ function applyFilters() {
         return filtered;
     };
     
-    // Không chọn tháng nào
     if (!fromMonth && !toMonth) {
-        let finalCustomers = [...allFilteredCustomers];
+        let result = [...allFilteredCustomers];
         
         if (selectedProduct && selectedProduct !== '') {
-            // Lấy từ nh-all.js
             const productCustomers = productFilter.getCustomersByProduct(selectedProduct);
             const productSet = new Set(productCustomers);
-            finalCustomers = finalCustomers.filter(c => productSet.has(c.ma_kh));
-        } else if (selectedCategory === 'all') {
-            // Tất cả ngành hàng: giữ nguyên
+            result = result.filter(c => productSet.has(c.ma_kh));
         } else if (selectedCategory === '') {
             const allCategoryCodes = getAllCustomerCodesFromAllCategories();
             const categorySet = new Set(allCategoryCodes);
-            finalCustomers = finalCustomers.filter(c => categorySet.has(c.ma_kh));
-        } else {
+            result = result.filter(c => categorySet.has(c.ma_kh));
+        } else if (selectedCategory !== 'all' && selectedCategory !== '') {
             const categoryCustomers = categoryFilter.getCustomerCodesByCategory(selectedCategory);
             const categorySet = new Set(categoryCustomers);
-            finalCustomers = finalCustomers.filter(c => categorySet.has(c.ma_kh));
+            result = result.filter(c => categorySet.has(c.ma_kh));
         }
         
-        finalCustomers = applyOtherFilters(finalCustomers);
-        
-        if (finalCustomers.length > 0) {
-            mapHandler.displayAllRedCustomers(finalCustomers, finalCustomers.length);
-            updateCounterDisplay(null, null, false, null, null, finalCustomers.length);
-        } else {
-            mapHandler.clearMarkers();
-            updateCounterDisplay(null, null, false, null, null, 0);
-        }
-        updateAreaCountDisplay();
-        return;
+        result = applyOtherFilters(result);
+        return result;
     }
-    
-    // Chọn 1 tháng
-    if (fromMonth && !toMonth) {
-        let finalCustomers = dateRangeFilter.getCustomersUptoMonth(fromMonth);
-        finalCustomers = finalCustomers.filter(c => allFilteredSet.has(c.ma_kh));
-        finalCustomers = filterByCategoryAndProduct(finalCustomers, fromMonth);
-        finalCustomers = applyOtherFilters(finalCustomers);
-        
-        if (finalCustomers.length > 0) {
-            mapHandler.displayAllRedCustomers(finalCustomers, finalCustomers.length);
-            updateCounterDisplay(finalCustomers.length, 0, false, fromMonth, null, null);
-        } else {
-            mapHandler.clearMarkers();
-            updateCounterDisplay(0, 0, false, fromMonth, null, null);
-        }
-        updateAreaCountDisplay();
-        return;
+    else if (fromMonth && !toMonth) {
+        let result = dateRangeFilter.getCustomersUptoMonth(fromMonth);
+        result = result.filter(c => allFilteredSet.has(c.ma_kh));
+        result = filterByCategoryAndProduct(result, fromMonth);
+        result = applyOtherFilters(result);
+        return result;
     }
-    
-    // Chọn 1 tháng đến
-    if (toMonth && !fromMonth) {
-        let finalCustomers = dateRangeFilter.getCustomersUptoMonth(toMonth);
-        finalCustomers = finalCustomers.filter(c => allFilteredSet.has(c.ma_kh));
-        finalCustomers = filterByCategoryAndProduct(finalCustomers, toMonth);
-        finalCustomers = applyOtherFilters(finalCustomers);
-        
-        if (finalCustomers.length > 0) {
-            mapHandler.displayAllRedCustomers(finalCustomers, finalCustomers.length);
-            updateCounterDisplay(0, finalCustomers.length, false, null, toMonth, null);
-        } else {
-            mapHandler.clearMarkers();
-            updateCounterDisplay(0, 0, false, null, toMonth, null);
-        }
-        updateAreaCountDisplay();
-        return;
+    else if (toMonth && !fromMonth) {
+        let result = dateRangeFilter.getCustomersUptoMonth(toMonth);
+        result = result.filter(c => allFilteredSet.has(c.ma_kh));
+        result = filterByCategoryAndProduct(result, toMonth);
+        result = applyOtherFilters(result);
+        return result;
     }
-    
-    // Chọn 2 tháng
-    if (fromMonth && toMonth) {
+    else if (fromMonth && toMonth) {
         const fromCustomers = dateRangeFilter.getCustomersUptoMonth(fromMonth);
         const toCustomers = dateRangeFilter.getCustomersUptoMonth(toMonth);
         
         let filteredFrom = fromCustomers.filter(c => allFilteredSet.has(c.ma_kh));
         let filteredTo = toCustomers.filter(c => allFilteredSet.has(c.ma_kh));
         
-        // Lọc theo ngành hàng/sản phẩm cho từng tháng
         filteredFrom = filterByCategoryAndProduct(filteredFrom, fromMonth);
         filteredTo = filterByCategoryAndProduct(filteredTo, toMonth);
         
@@ -330,20 +285,94 @@ function applyFilters() {
         const blueRaw = filteredTo.filter(c => !fromSet.has(c.ma_kh));
         const yellowRaw = filteredFrom.filter(c => toSet.has(c.ma_kh));
         
-        const fromCount = redRaw.length + yellowRaw.length;
-        const toCount = blueRaw.length + yellowRaw.length;
+        return { yellow: yellowRaw, red: redRaw, blue: blueRaw, fromCount: filteredFrom.length, toCount: filteredTo.length };
+    }
+    
+    return [];
+}
+
+function applyFilters() {
+    mapHandler.clearMarkers();
+    
+    let internalCount = 0;
+    let apiCount = 0;
+    
+    const fromMonth = dateRangeFilter.getFromValue();
+    const toMonth = dateRangeFilter.getToValue();
+    
+    // Hiển thị khách hàng nội bộ nếu được bật
+    if (showInternalCustomers) {
+        const internalResult = getFilteredInternalCustomers();
         
-        if (yellowRaw.length === 0 && redRaw.length === 0 && blueRaw.length === 0) {
-            mapHandler.clearMarkers();
-            updateCounterDisplay(fromCount, toCount, true, fromMonth, toMonth, null, redRaw.length, blueRaw.length, yellowRaw.length);
-        } else {
-            mapHandler.displayCustomersByGroups(yellowRaw, redRaw, blueRaw, fromCount, toCount, true);
-            updateCounterDisplay(fromCount, toCount, true, fromMonth, toMonth, null, redRaw.length, blueRaw.length, yellowRaw.length);
+        if (internalResult.yellow !== undefined) {
+            if (internalResult.yellow.length > 0 || internalResult.red.length > 0 || internalResult.blue.length > 0) {
+                mapHandler.displayCustomersByGroups(internalResult.yellow, internalResult.red, internalResult.blue, 
+                    internalResult.fromCount, internalResult.toCount, true);
+            }
+            internalCount = internalResult.fromCount + internalResult.toCount;
+            
+            updateCounterDisplay(
+                internalResult.fromCount, 
+                internalResult.toCount, 
+                true, 
+                fromMonth, 
+                toMonth, 
+                null,
+                internalResult.red.length,
+                internalResult.blue.length,
+                internalResult.yellow.length
+            );
+        } else if (Array.isArray(internalResult)) {
+            if (internalResult.length > 0) {
+                mapHandler.displayAllRedCustomers(internalResult, internalResult.length);
+                internalCount = internalResult.length;
+            }
+            
+            if (fromMonth && !toMonth) {
+                updateCounterDisplay(internalResult.length, 0, false, fromMonth, null, null);
+            } else if (toMonth && !fromMonth) {
+                updateCounterDisplay(0, internalResult.length, false, null, toMonth, null);
+            } else {
+                updateCounterDisplay(null, null, false, null, null, internalResult.length);
+            }
         }
         
-        updateAreaCountDisplay();
-        return;
+        const internalBadge = document.getElementById('internalCustomerCount');
+        if (internalBadge) {
+            internalBadge.textContent = `${internalCount} KH`;
+        }
+    } else {
+        updateCounterDisplay(null, null, false, null, null, 0);
     }
+    
+    // Hiển thị khách hàng API nếu được bật
+    if (apiCustomersManager && apiCustomersManager.isEnabledFlag()) {
+        apiCustomersManager.applyFilters();
+        apiCount = apiCustomersManager.displayMarkers();
+        
+        const apiBadge = document.getElementById('apiCustomerCount');
+        if (apiBadge && apiCount > 0) {
+            apiBadge.textContent = `${apiCount} KH`;
+            apiBadge.style.display = 'inline-block';
+        } else if (apiBadge) {
+            apiBadge.style.display = 'none';
+        }
+        
+        // Cập nhật thêm thông tin API vào counter nếu internal đang hiển thị
+        if (showInternalCustomers) {
+            const counterSpan = document.getElementById('customerCount');
+            if (counterSpan && counterSpan.textContent) {
+                counterSpan.textContent += ` | 🌐 API: ${apiCount}`;
+            }
+        } else {
+            const counterSpan = document.getElementById('customerCount');
+            if (counterSpan) {
+                counterSpan.textContent = `🌐 API: ${apiCount}`;
+            }
+        }
+    }
+    
+    updateAreaCountDisplay();
 }
 
 function applyPermissionToAreaFilter() {
@@ -395,6 +424,17 @@ async function initApp() {
         currentCustomers = window.customersData || [];
         await initCategoryData();
         
+        // Khởi tạo API Customers Manager
+        apiCustomersManager = new ApiCustomersManager();
+        apiCustomersManager.setMarkers(mapHandler.markerCluster, mapHandler);
+        apiCustomersManager.setOnFilterChange(() => {
+            if (apiCustomersManager.isEnabledFlag()) {
+                mapHandler.clearMarkers();
+                applyFilters();
+            }
+        });
+        
+        // Khởi tạo các bộ lọc
         dateRangeFilter = new DateRangeFilter('fromMonthFilter', 'toMonthFilter', currentCustomers);
         channelFilter = new ChannelFilter('channelFilter', 'typeFilter', currentCustomers);
         areaFilter = new AreaFilter('areaFilter', currentCustomers, areaHighlight);
@@ -449,6 +489,47 @@ async function initApp() {
         employeeFilter.initOptions(initialEmployees);
         
         if (areaHighlight) areaHighlight.showAllAreas();
+        
+        // Xử lý checkbox hiển thị khách hàng nội bộ
+        const showInternalCheckbox = document.getElementById('showInternalCustomers');
+        const internalFiltersSection = document.getElementById('internalFiltersSection');
+        
+        if (showInternalCheckbox) {
+            showInternalCheckbox.checked = true;
+            showInternalCustomers = true;
+            if (internalFiltersSection) internalFiltersSection.style.display = 'block';
+            
+            showInternalCheckbox.addEventListener('change', (e) => {
+                showInternalCustomers = e.target.checked;
+                if (internalFiltersSection) {
+                    internalFiltersSection.style.display = showInternalCustomers ? 'block' : 'none';
+                }
+                mapHandler.clearMarkers();
+                applyFilters();
+            });
+        }
+        
+        // Xử lý checkbox hiển thị API
+        const showApiCheckbox = document.getElementById('showApiCustomers');
+        if (showApiCheckbox) {
+            showApiCheckbox.addEventListener('change', async (e) => {
+                if (e.target.checked) {
+                    apiCustomersManager.enable();
+                    if (apiCustomersManager.customers.length === 0) {
+                        await apiCustomersManager.loadCustomers();
+                    } else {
+                        apiCustomersManager.applyFilters();
+                    }
+                    mapHandler.clearMarkers();
+                    applyFilters();
+                } else {
+                    apiCustomersManager.disable();
+                    apiCustomersManager.clearMarkers();
+                    mapHandler.clearMarkers();
+                    applyFilters();
+                }
+            });
+        }
         
         applyFilters();
         

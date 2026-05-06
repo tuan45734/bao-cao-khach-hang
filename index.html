@@ -21,54 +21,138 @@
             <h2>📍 Bộ lọc khách hàng</h2>
             
             <div id="filterSection">
-                <div class="filter-group date-range-group">
-                    <label>📅 Từ tháng:</label>
-                    <div class="select-with-count">
-                        <select id="fromMonthFilter">
-                            <option value="">-- Không chọn --</option>
-                            <option value="1-2026">Tháng 1/2026</option>
-                            <option value="2-2026">Tháng 2/2026</option>
-                            <option value="3-2026">Tháng 3/2026</option>
-                            <option value="4-2026">Tháng 4/2026</option>
-                            <option value="5-2026">Tháng 5/2026</option>
+                <!-- Checkbox hiển thị khách hàng nội bộ -->
+                <div class="filter-group internal-toggle-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="showInternalCustomers" checked style="width: 18px; height: 18px; cursor: pointer;">
+                        <span>🏢 Khách hàng nội bộ</span>
+                        <span class="internal-count-badge" id="internalCustomerCount" style="background: #e53e3e; padding: 2px 8px; border-radius: 20px; font-size: 11px;">0 KH</span>
+                    </label>
+                </div>
+
+                <!-- Bộ lọc nội bộ (sẽ ẩn khi bỏ checkbox) -->
+                <div id="internalFiltersSection">
+                    <div class="filter-group date-range-group">
+                        <label>📅 Từ tháng:</label>
+                        <div class="select-with-count">
+                            <select id="fromMonthFilter">
+                                <option value="">-- Không chọn --</option>
+                                <option value="1-2026">Tháng 1/2026</option>
+                                <option value="2-2026">Tháng 2/2026</option>
+                                <option value="3-2026">Tháng 3/2026</option>
+                                <option value="4-2026">Tháng 4/2026</option>
+                                <option value="5-2026">Tháng 5/2026</option>
+                            </select>
+                            <span class="month-count" id="fromMonthCount"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group date-range-group">
+                        <label>📅 Đến tháng:</label>
+                        <div class="select-with-count">
+                            <select id="toMonthFilter">
+                                <option value="">-- Không chọn --</option>
+                                <option value="1-2026">Tháng 1/2026</option>
+                                <option value="2-2026">Tháng 2/2026</option>
+                                <option value="3-2026">Tháng 3/2026</option>
+                                <option value="4-2026">Tháng 4/2026</option>
+                                <option value="5-2026">Tháng 5/2026</option>
+                            </select>
+                            <span class="month-count" id="toMonthCount"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>📺 Kênh:</label>
+                        <select id="channelFilter">
+                            <option value="all">-- Tất cả kênh --</option>
                         </select>
-                        <span class="month-count" id="fromMonthCount"></span>
                     </div>
-                </div>
-                
-                <div class="filter-group date-range-group">
-                    <label>📅 Đến tháng:</label>
-                    <div class="select-with-count">
-                        <select id="toMonthFilter">
-    <option value="">-- Không chọn --</option>
-    <option value="1-2026">Tháng 1/2026</option>
-    <option value="2-2026">Tháng 2/2026</option>
-    <option value="3-2026">Tháng 3/2026</option>
-    <option value="4-2026">Tháng 4/2026</option>
-    <option value="5-2026">Tháng 5/2026</option>
-</select>
-                        <span class="month-count" id="toMonthCount"></span>
+                    
+                    <div class="filter-group">
+                        <label>🏷️ Loại:</label>
+                        <select id="typeFilter">
+                            <option value="all">-- Tất cả loại --</option>
+                        </select>
                     </div>
+                    
+                    <div class="filter-group">
+                        <label>🗺️ Khu vực:</label>
+                        <div class="select-with-count">
+                            <select id="areaFilter">
+                                <option value="all">-- Tất cả khu vực --</option>
+                                <option value="KV1">KV1</option>
+                                <option value="KV2">KV2</option>
+                                <option value="KV3">KV3</option>
+                                <option value="KV4">KV4</option>
+                                <option value="KV5">KV5</option>
+                                <option value="KV6">KV6</option>
+                            </select>
+                            <span class="area-count" id="areaCount"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>🏢 Nhà phân phối (NPP):</label>
+                        <select id="nppFilter">
+                            <option value="all">-- Chọn NPP --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>👤 Nhân viên:</label>
+                        <select id="employeeFilter">
+                            <option value="all">-- Chọn nhân viên --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>📦 Ngành hàng:</label>
+                        <select id="categoryFilter">
+                            <option value="">-- Tất cả ngành hàng --</option>
+                            <option value="all">-- Không chọn --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>📦 Sản phẩm:</label>
+                        <select id="productFilter">
+                            <option value="">-- Không chọn sản phẩm --</option>
+                        </select>
+                    </div>
+                    <button id="resetBtn">🔄 Xóa bộ lọc</button>
                 </div>
-                
-                <div class="filter-group">
-                    <label>📺 Kênh:</label>
-                    <select id="channelFilter">
-                        <option value="all">-- Tất cả kênh --</option>
-                    </select>
+
+                <!-- Checkbox hiển thị khách hàng thực tế -->
+                <div class="filter-group api-toggle-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="showApiCustomers" style="width: 18px; height: 18px; cursor: pointer;">
+                        <span>🌐 Khách hàng thực tế (API)</span>
+                        <span class="api-count-badge" id="apiCustomerCount" style="display: none; background: #9b59b6; padding: 2px 8px; border-radius: 20px; font-size: 11px;">0 KH</span>
+                    </label>
                 </div>
-                
-                <div class="filter-group">
-                    <label>🏷️ Loại:</label>
-                    <select id="typeFilter">
-                        <option value="all">-- Tất cả loại --</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label>🗺️ Khu vực:</label>
-                    <div class="select-with-count">
-                        <select id="areaFilter">
+
+                <!-- Bộ lọc riêng cho API -->
+                <div id="apiFiltersSection" style="display: none; border-left: 3px solid #9b59b6; padding-left: 12px; margin: 10px 0 15px 0;">
+                    <div style="font-size: 12px; font-weight: 600; color: #9b59b6; margin-bottom: 10px;">🔮 Bộ lọc khách hàng thực tế</div>
+                    
+                    <div class="filter-group">
+                        <label>📺 Kênh (API):</label>
+                        <select id="apiChannelFilter">
+                            <option value="all">-- Tất cả kênh --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>🏷️ Loại (API):</label>
+                        <select id="apiTypeFilter">
+                            <option value="all">-- Tất cả loại --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>🗺️ Khu vực (API):</label>
+                        <select id="apiAreaFilter">
                             <option value="all">-- Tất cả khu vực --</option>
                             <option value="KV1">KV1</option>
                             <option value="KV2">KV2</option>
@@ -77,41 +161,25 @@
                             <option value="KV5">KV5</option>
                             <option value="KV6">KV6</option>
                         </select>
-                        <span class="area-count" id="areaCount"></span>
                     </div>
+                    
+                    <div class="filter-group">
+                        <label>🏢 Nhà phân phối (API):</label>
+                        <select id="apiNppFilter">
+                            <option value="all">-- Chọn NPP --</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Container cho bộ lọc ngành hàng dạng checkbox -->
+                    <div id="apiCategoryContainer">
+                        <div style="font-size: 12px; font-weight: 600; color: #9b59b6; margin: 10px 0 8px 0;">📦 Ngành hàng (API):</div>
+                        <div class="api-category-checkboxes" id="apiCategoryCheckboxes"></div>
+                    </div>
+                    
+                    <button id="resetApiFiltersBtn" style="background: #9b59b6; margin-top: 5px;">🔄 Xóa bộ lọc API</button>
                 </div>
                 
-                <div class="filter-group">
-                    <label>🏢 Nhà phân phối (NPP):</label>
-                    <select id="nppFilter">
-                        <option value="all">-- Chọn NPP --</option>
-                    </select>
-                </div>
                 
-                <div class="filter-group">
-                    <label>👤 Nhân viên:</label>
-                    <select id="employeeFilter">
-                        <option value="all">-- Chọn nhân viên --</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label>📦 Ngành hàng:</label>
-                    <select id="categoryFilter">
-                        <option value="">-- Tất cả ngành hàng --</option>
-                        <option value="all">-- Không chọn --</option>
-                        
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label>📦 Sản phẩm:</label>
-                    <select id="productFilter">
-                        <option value="">-- Không chọn sản phẩm --</option>
-                    </select>
-                </div>
-                
-                <button id="resetBtn">🔄 Xóa bộ lọc</button>
             </div>
         </div>
         
@@ -147,6 +215,7 @@
     <script src="js/filters/employee-filter.js"></script>
     <script src="js/filters/category-filter.js"></script>
     <script src="js/filters/product-filter.js"></script>
+    <script src="js/api-customers.js"></script>
     <script src="js/map-handler.js"></script>
     <script src="js/main.js"></script>
 </body>

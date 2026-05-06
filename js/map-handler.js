@@ -70,13 +70,12 @@ class MapHandler {
         const marker = L.marker([lat, lng], { icon: icon });
         
         if (customerData) {
-            // Tạo nội dung popup có ảnh
             let imageHtml = '';
             if (customerData.anh && customerData.anh !== '') {
                 imageHtml = `
                     <div style="margin-top: 8px; text-align: center;">
                         <img src="${customerData.anh}" 
-                             style="max-width: 100%; max-height: 700px; border-radius: 8px; object-fit: cover; cursor: pointer;"
+                             style="max-width: 100%; max-height: 150px; border-radius: 8px; object-fit: cover; cursor: pointer;"
                              onclick="window.open('${customerData.anh}', '_blank')"
                              onerror="this.style.display='none'">
                         <div style="margin-top: 4px; font-size: 10px; color: #6c757d;">🔍 Click ảnh để xem lớn</div>
@@ -85,11 +84,11 @@ class MapHandler {
             }
             
             marker.bindPopup(`
-                <div style="font-size: 12px; min-width: 200px; max-width: 260px;">
-                    <strong style="font-size: 14px;">🏪 ${customerData.ma_kh || ''}</strong><br/>
+                <div style="font-size: 12px; min-width: 220px; max-width: 280px;">
+                    <strong style="font-size: 14px;">🏪 ${customerData.ma_kh || customerData.ten || ''}</strong><br/>
                     🏢 ${customerData.npp || 'N/A'}<br/>
                     👤 ${customerData.ten_nv || 'N/A'}<br/>
-                    📅 ${customerData.ngay_tao || 'N/A'}<br/>
+                    📅 ${customerData.ngay_tao ? new Date(customerData.ngay_tao).toLocaleDateString('vi-VN') : customerData.ngay_tao || 'N/A'}<br/>
                     📺 ${customerData.kenh || 'N/A'}<br/>
                     🏷️ ${customerData.loai || 'N/A'}
                     ${imageHtml}
@@ -100,53 +99,114 @@ class MapHandler {
         return marker;
     }
 
+    createApiMarker(lat, lng, customerData = null, color = '#9b59b6') {
+        const icon = L.divIcon({
+            className: 'simple-marker api-marker',
+            html: `<div style="width: 10px; height: 10px; background-color: ${color}; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 2px rgba(0,0,0,0.4);"></div>`,
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+        });
+        
+        const marker = L.marker([lat, lng], { icon: icon });
+        
+        if (customerData) {
+            let imageHtml = '';
+            if (customerData.anh && customerData.anh !== '') {
+                const imageUrl = customerData.anh.startsWith('http') ? customerData.anh : `https://jsk9x6z4-3000.asse.devtunnels.ms${customerData.anh}`;
+                imageHtml = `
+                    <div style="margin-top: 8px; text-align: center;">
+                        <img src="${imageUrl}" 
+                             style="max-width: 100%; max-height: 150px; border-radius: 8px; object-fit: cover; cursor: pointer;"
+                             onclick="window.open('${imageUrl}', '_blank')"
+                             onerror="this.style.display='none'">
+                        <div style="margin-top: 4px; font-size: 10px; color: #6c757d;">🔍 Click ảnh để xem lớn</div>
+                    </div>
+                `;
+            }
+            
+            let nganhHangHtml = '';
+            if (customerData.nganh_hang_list && customerData.nganh_hang_list.length > 0) {
+                nganhHangHtml = `<div style="margin-top: 5px;"><span style="color:#9b59b6;">📦 Ngành hàng:</span> ${customerData.nganh_hang_list.join(', ')}</div>`;
+            }
+            
+            marker.bindPopup(`
+                <div style="font-size: 12px; min-width: 220px; max-width: 280px;">
+                    <div style="background: #9b59b6; color: white; padding: 4px 8px; border-radius: 8px 8px 0 0; margin: -12px -12px 8px -12px;">
+                        <strong>🌟 KHÁCH HÀNG THỰC TẾ</strong>
+                    </div>
+                    <strong>🏪 ${customerData.ten || customerData.ma_kh || 'Không có tên'}</strong><br/>
+                    🏢 ${customerData.npp || 'N/A'}<br/>
+                    📺 ${customerData.kenh || this.getChannelFromType(customerData.loai) || 'N/A'}<br/>
+                    🏷️ ${customerData.loai || 'N/A'}<br/>
+                    📅 ${customerData.ngay_tao ? new Date(customerData.ngay_tao).toLocaleDateString('vi-VN') : 'N/A'}<br/>
+                    🆔 ID: ${customerData.id || 'N/A'}
+                    ${nganhHangHtml}
+                    ${imageHtml}
+                </div>
+            `);
+        }
+        
+        return marker;
+    }
 
-displayCustomersByGroups(yellowCustomers, redCustomers, blueCustomers, fromCount, toCount, hasBothMonths) {
-    this.clearMarkers();
-    const markers = [];
-    
-    const addMarkers = (customers, color) => {
+    getChannelFromType(type) {
+        const typeToChannel = {
+            "Đại siêu thị": "Kênh siêu thị",
+            "Siêu Thị Lớn": "Kênh siêu thị",
+            "Siêu thị vừa và nhỏ": "Kênh siêu thị",
+            "Khách sỉ lớn": "Kênh sỉ",
+            "Khách sỉ vừa và nhỏ": "Kênh sỉ",
+            "Khách trường học": "Kênh trường học",
+            "Cửa hàng tạp hóa": "Kênh tiêu thụ trực tiếp",
+            "Khách lẻ tiêu thụ trực tiếp": "Kênh tiêu thụ trực tiếp",
+            "kênh horeca": "Kênh horeca",
+            "Kênh horeca": "Kênh horeca",
+            "Kênh công nghiệp": "Kênh công nghiệp"
+        };
+        return typeToChannel[type] || 'Kênh tiêu thụ trực tiếp';
+    }
+
+    displayCustomersByGroups(yellowCustomers, redCustomers, blueCustomers, fromCount, toCount, hasBothMonths) {
+        const markers = [];
+        
+        const addMarkers = (customers, color) => {
+            customers.forEach(c => {
+                const lat = parseFloat(c.vi_do);
+                const lng = parseFloat(c.kinh_do);
+                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                    markers.push(this.createMarker(lat, lng, c, color));
+                }
+            });
+        };
+        
+        addMarkers(yellowCustomers, '#FFD700');
+        addMarkers(redCustomers, '#E53E3E');
+        addMarkers(blueCustomers, '#3B82F6');
+        
+        if (markers.length > 0) {
+            this.markerCluster.addLayers(markers);
+            const bounds = [];
+            markers.forEach(m => { const ll = m.getLatLng(); if (ll) bounds.push(ll); });
+            if (bounds.length) this.map.fitBounds(L.latLngBounds(bounds).pad(0.1));
+        }
+    }
+
+    displayAllRedCustomers(customers, totalCount) {
+        const markers = [];
         customers.forEach(c => {
             const lat = parseFloat(c.vi_do);
             const lng = parseFloat(c.kinh_do);
             if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-                markers.push(this.createMarker(lat, lng, c, color));
+                markers.push(this.createMarker(lat, lng, c, '#E53E3E'));
             }
         });
-    };
-    
-    addMarkers(yellowCustomers, '#FFD700');
-    addMarkers(redCustomers, '#E53E3E');
-    addMarkers(blueCustomers, '#3B82F6');
-    
-    if (markers.length > 0) {
-        this.markerCluster.addLayers(markers);
-        const bounds = [];
-        markers.forEach(m => { const ll = m.getLatLng(); if (ll) bounds.push(ll); });
-        if (bounds.length) this.map.fitBounds(L.latLngBounds(bounds).pad(0.1));
-    }
-    
-    // Không cập nhật counter ở đây nữa, để main.js xử lý
-}
-
-displayAllRedCustomers(customers, totalCount) {
-    this.clearMarkers();
-    const markers = [];
-    customers.forEach(c => {
-        const lat = parseFloat(c.vi_do);
-        const lng = parseFloat(c.kinh_do);
-        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-            markers.push(this.createMarker(lat, lng, c, '#E53E3E'));
+        if (markers.length > 0) {
+            this.markerCluster.addLayers(markers);
+            const bounds = [];
+            markers.forEach(m => { const ll = m.getLatLng(); if (ll) bounds.push(ll); });
+            if (bounds.length) this.map.fitBounds(L.latLngBounds(bounds).pad(0.1));
         }
-    });
-    if (markers.length > 0) {
-        this.markerCluster.addLayers(markers);
-        const bounds = [];
-        markers.forEach(m => { const ll = m.getLatLng(); if (ll) bounds.push(ll); });
-        if (bounds.length) this.map.fitBounds(L.latLngBounds(bounds).pad(0.1));
     }
-    // Không cập nhật counter ở đây nữa
-}
 
     addMarkerStyles() {
         if (!document.querySelector('#marker-styles')) {
@@ -154,12 +214,11 @@ displayAllRedCustomers(customers, totalCount) {
             style.id = 'marker-styles';
             style.textContent = `
                 .simple-marker { background: transparent !important; border: none !important; }
+                .api-marker div { background-color: #9b59b6 !important; box-shadow: 0 0 0 2px white, 0 0 0 4px rgba(155, 89, 182, 0.4); }
                 .leaflet-control-attribution { display: none !important; }
                 .marker-cluster-custom { background: transparent !important; }
                 .marker-cluster-custom div:hover { transform: scale(1.05); transition: transform 0.2s; }
-                .leaflet-popup-content {
-                    min-width: 220px !important;
-                }
+                .leaflet-popup-content { min-width: 220px !important; }
             `;
             document.head.appendChild(style);
         }
