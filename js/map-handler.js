@@ -30,11 +30,11 @@ class MapHandler {
         }).addTo(this.map);
         
         this.markerCluster = L.markerClusterGroup({
-            maxClusterRadius: 100,
+            maxClusterRadius: 120,
             spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
             zoomToBoundsOnClick: true,
-            disableClusteringAtZoom: 14,
+            disableClusteringAtZoom: 16,
             iconCreateFunction: function(cluster) {
                 const count = cluster.getChildCount();
                 let size = 40, fontSize = 12, bgColor = '#ff6600';
