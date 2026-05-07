@@ -176,6 +176,24 @@ body {
     font-weight: 500;
 }
 
+/* Internal Filters Section - Style giống API Filters Section */
+#internalFiltersSection {
+    background: #fff5f5;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 10px 0 15px 0;
+    border-left: 3px solid #e53e3e;
+    transition: all 0.3s ease;
+}
+
+#internalFiltersSection .internal-filters-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #e53e3e;
+    margin-bottom: 10px;
+    padding-left: 5px;
+}
+
 /* API Toggle Group */
 .api-toggle-group {
     background: #f8f0fc;
@@ -206,6 +224,16 @@ body {
     border-radius: 12px;
     padding: 12px;
     margin: 10px 0 15px 0;
+    border-left: 3px solid #9b59b6;
+    transition: all 0.3s ease;
+}
+
+#apiFiltersSection .api-filters-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9b59b6;
+    margin-bottom: 10px;
+    padding-left: 5px;
 }
 
 /* API Category Checkboxes */
@@ -284,6 +312,25 @@ button:disabled {
 
 #resetBtn:hover:not(:disabled) {
     background: #836e51;
+}
+
+/* Reset button cho internal và api */
+#resetInternalFiltersBtn {
+    background: #e53e3e;
+    margin-top: 5px;
+}
+
+#resetInternalFiltersBtn:hover:not(:disabled) {
+    background: #c53030;
+}
+
+#resetApiFiltersBtn {
+    background: #9b59b6;
+    margin-top: 5px;
+}
+
+#resetApiFiltersBtn:hover:not(:disabled) {
+    background: #7d3c98;
 }
 
 /* Bản đồ */
@@ -520,19 +567,12 @@ button:disabled {
         font-size: 10px;
         min-width: 50px;
     }
-}
-/* Thêm vào cuối file style.css */
-
-/* Internal Filters Section */
-#internalFiltersSection {
-    transition: all 0.3s ease;
-}
-
-/* API Filters Section */
-#apiFiltersSection {
-    background: #faf5ff;
-    border-radius: 12px;
-    padding: 12px;
-    margin: 10px 0 15px 0;
-    transition: all 0.3s ease;
+    
+    .internal-toggle-group, .api-toggle-group {
+        padding: 8px;
+    }
+    
+    #internalFiltersSection, #apiFiltersSection {
+        padding: 8px;
+    }
 }
