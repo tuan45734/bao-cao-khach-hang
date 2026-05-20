@@ -1,0 +1,11 @@
+{
+  "name": "bao-cao-khach-hang",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "node scripts/sync-mobiwork-data.js",
+    "sync:customers": "node scripts/sync-mobiwork-data.js --customers-only",
+    "sync:bills": "node scripts/sync-mobiwork-data.js --bills-only",
+    "sync:merge": "node scripts/sync-mobiwork-data.js --merge-only"
+  }
+}
