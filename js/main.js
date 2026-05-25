@@ -6,6 +6,13 @@ let currentUserPermission = null;
 let apiCustomersManager = null;
 let showInternalCustomers = true;
 
+const internalRegionAreas = {
+    all: ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6', 'KV7'],
+    north: ['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6'],
+    central: ['KV7'],
+    south: []
+};
+
 const userPermissions = {
     'KV1ADZ': 'KV1',
     'KV2ZAC': 'KV2',
@@ -15,6 +22,34 @@ const userPermissions = {
     'KV6XBC': 'KV6',
     '99': 'ALL'
 };
+
+function getAllowedAreasForRegion(regionValue) {
+    return [...(internalRegionAreas[regionValue] || internalRegionAreas.all)];
+}
+
+function getPermissionAllowedAreas() {
+    if (!currentUserPermission || currentUserPermission === 'ALL') {
+        return [...internalRegionAreas.all];
+    }
+    return [currentUserPermission];
+}
+
+function getEffectiveAllowedAreas(regionValue) {
+    const regionAreas = getAllowedAreasForRegion(regionValue);
+    const permissionAreas = getPermissionAllowedAreas();
+
+    if (permissionAreas.length === internalRegionAreas.all.length) {
+        return regionAreas;
+    }
+
+    return regionAreas.filter(area => permissionAreas.includes(area));
+}
+
+function getRegionByArea(areaCode) {
+    if (['KV1', 'KV2', 'KV3', 'KV4', 'KV5', 'KV6'].includes(areaCode)) return 'north';
+    if (areaCode === 'KV7') return 'central';
+    return 'all';
+}
 
 function setupLogin() {
     const loginBtn = document.getElementById('loginBtn');
@@ -99,7 +134,9 @@ function updateAreaCountDisplay() {
             'KV3': ['NPP Bảo Cường', 'NPP Tùng Phương', 'NPP Phúc Thịnh', 'NPP Hoa Việt', 'NPP Hikoji', 'NPP Long Hải', 'NPP Tân Hoa', 'NPP Tây Đô', 'NPP Thắng Lợi', 'NPP Thành Hân', 'NPP Tiến Thịnh'],
             'KV4': ['NPP Ánh Thu', 'NPP Đức Oanh', 'NPP Dương Minh', 'NPP Dũng Béo', 'NPP Hưng Thịnh', 'NPP Ngọc Phúc', 'NPP Nguyễn Đình Hân', 'NPP Tân Thúy', 'NPP Thăng Hương', 'NPP Thảo Thắng'],
             'KV5': ['NPP Đồng Lợi', 'NPP Hải Hằng', 'NPP Hiền Cường', 'NPP Hoàng Minh', 'NPP Oanh Định', 'NPP Sơn Lâm', 'NPP Thái Hoà', 'NPP Thảo Xuân', 'NPP Duy Khoa', 'NPP Tuấn Vân', 'NPP Vũ Đức Nam'],
-            'KV6': ['NPP Anh Minh HT', 'NPP Hà Thanh', 'NPP Hồng Đức', 'NPP Linh Trang', 'NPP Mạnh Hà 1', 'NPP Mạnh Hà 2', 'NPP Minh Châu', 'NPP Minh Lộc', 'NPP Nhung Tùng', 'NPP Phương Hà', 'NPP Tân Bích An', 'NPP Thanh Bình', 'NPP Thành Thanh', 'NPP Thông Thơm', 'NPP Trường Hằng']
+            'KV6': ['NPP Anh Minh HT', 'NPP Hà Thanh', 'NPP Hồng Đức', 'NPP Linh Trang', 'NPP Mạnh Hà 1', 'NPP Mạnh Hà 2', 'NPP Minh Châu', 'NPP Minh Lộc', 'NPP Nhung Tùng', 'NPP Phương Hà', 'NPP Tân Bích An', 'NPP Thanh Bình', 'NPP Thành Thanh', 'NPP Thông Thơm', 'NPP Trường Hằng'],
+            'KV7': ['NPP Bảo Hân', 'NPP NAKOA', 'NPP Dương Thiên Nhi', 'NPP Tường Vy', 'NPP Minh Huy', 'NPP Hiền Thuận', 'NPP Thúy Diễm', 'NPP Anh Viên', 'NPP Hoàng Gia Bảo', 'NPP Trung Nam', 'NPP Nam Khánh', 'NPP Thanh Trà']
+
       };
     
     if (selectedArea === 'all') {
@@ -194,7 +231,9 @@ function getCustomersByArea(areaCode) {
             'KV3': ['NPP Bảo Cường', 'NPP Tùng Phương', 'NPP Phúc Thịnh', 'NPP Hoa Việt', 'NPP Hikoji', 'NPP Long Hải', 'NPP Tân Hoa', 'NPP Tây Đô', 'NPP Thắng Lợi', 'NPP Thành Hân', 'NPP Tiến Thịnh'],
             'KV4': ['NPP Ánh Thu', 'NPP Đức Oanh', 'NPP Dương Minh', 'NPP Dũng Béo', 'NPP Hưng Thịnh', 'NPP Ngọc Phúc', 'NPP Nguyễn Đình Hân', 'NPP Tân Thúy', 'NPP Thăng Hương', 'NPP Thảo Thắng'],
             'KV5': ['NPP Đồng Lợi', 'NPP Hải Hằng', 'NPP Hiền Cường', 'NPP Hoàng Minh', 'NPP Oanh Định', 'NPP Sơn Lâm', 'NPP Thái Hoà', 'NPP Thảo Xuân', 'NPP Duy Khoa', 'NPP Tuấn Vân', 'NPP Vũ Đức Nam'],
-            'KV6': ['NPP Anh Minh HT', 'NPP Hà Thanh', 'NPP Hồng Đức', 'NPP Linh Trang', 'NPP Mạnh Hà 1', 'NPP Mạnh Hà 2', 'NPP Minh Châu', 'NPP Minh Lộc', 'NPP Nhung Tùng', 'NPP Phương Hà', 'NPP Tân Bích An', 'NPP Thanh Bình', 'NPP Thành Thanh', 'NPP Thông Thơm', 'NPP Trường Hằng']
+            'KV6': ['NPP Anh Minh HT', 'NPP Hà Thanh', 'NPP Hồng Đức', 'NPP Linh Trang', 'NPP Mạnh Hà 1', 'NPP Mạnh Hà 2', 'NPP Minh Châu', 'NPP Minh Lộc', 'NPP Nhung Tùng', 'NPP Phương Hà', 'NPP Tân Bích An', 'NPP Thanh Bình', 'NPP Thành Thanh', 'NPP Thông Thơm', 'NPP Trường Hằng'],
+            'KV7': ['NPP Bảo Hân', 'NPP NAKOA', 'NPP Dương Thiên Nhi', 'NPP Tường Vy', 'NPP Minh Huy', 'NPP Hiền Thuận', 'NPP Thúy Diễm', 'NPP Anh Viên', 'NPP Hoàng Gia Bảo', 'NPP Trung Nam', 'NPP Nam Khánh', 'NPP Thanh Trà']
+
         };
     
     const nppsInArea = areaMapping[areaCode] || [];
@@ -208,8 +247,10 @@ function applyOtherFilters(customers) {
     const employeeValue = employeeFilter.getValue();
     const channelValue = channelFilter.getChannelValue();
     const typeValue = channelFilter.getTypeValue();
+    const allowedAreas = areaFilter?.getAllowedAreas?.() || [];
+    const isRegionRestricted = allowedAreas.length !== areaFilter.getAllAreas().length;
     
-    if (areaValue !== 'all') result = areaFilter.applyFilter(result);
+    if (areaValue !== 'all' || isRegionRestricted) result = areaFilter.applyFilter(result);
     if (nppValue !== 'all') result = nppFilter.applyFilter(result);
     if (employeeValue !== 'all') result = employeeFilter.applyFilter(result);
     if (channelValue !== 'all' || typeValue !== 'all') result = channelFilter.applyFilter(result);
@@ -392,30 +433,76 @@ function applyFilters() {
         }
     }
     
-    updateAreaCountDisplay();
+    updateInternalAreaCountDisplay();
+}
+
+function updateInternalAreaCountDisplay() {
+    const areaSelect = document.getElementById('areaFilter');
+    const areaCountSpan = document.getElementById('areaCount');
+    if (!areaSelect || !areaCountSpan || !areaFilter) return;
+
+    const selectedArea = areaSelect.value;
+    const allowedAreas = areaFilter.getAllowedAreas();
+    let count = 0;
+
+    if (selectedArea === 'all') {
+        const allowedNpps = new Set();
+        allowedAreas.forEach(area => {
+            const npps = areaFilter.areaMapping[area] || [];
+            npps.forEach(npp => allowedNpps.add(npp));
+        });
+        count = currentCustomers.filter(c => allowedNpps.has(c.npp)).length;
+    } else if (allowedAreas.includes(selectedArea)) {
+        const nppsInArea = areaFilter.areaMapping[selectedArea] || [];
+        count = currentCustomers.filter(c => nppsInArea.includes(c.npp)).length;
+    }
+
+    areaCountSpan.textContent = `(${count} KH)`;
 }
 
 function applyPermissionToAreaFilter() {
     if (!areaFilter) return;
     
     const areaSelect = document.getElementById('areaFilter');
+    const regionSelect = document.getElementById('regionFilter');
     if (!areaSelect) return;
-    
+
     if (currentUserPermission && currentUserPermission !== 'ALL') {
-        for (let i = 0; i < areaSelect.options.length; i++) {
-            const option = areaSelect.options[i];
-            if (option.value !== currentUserPermission && option.value !== 'all') {
-                option.style.display = 'none';
-                option.disabled = true;
-            }
+        const region = getRegionByArea(currentUserPermission);
+        if (regionSelect) {
+            regionSelect.value = region;
+            regionSelect.disabled = true;
         }
-        areaSelect.value = currentUserPermission;
-        const event = new Event('change');
-        areaSelect.dispatchEvent(event);
-    } else {
-        areaSelect.value = 'all';
+    } else if (regionSelect) {
+        regionSelect.value = 'all';
+        regionSelect.disabled = false;
     }
-    updateAreaCountDisplay();
+
+    syncInternalAreaScope();
+    updateInternalAreaCountDisplay();
+}
+
+function syncInternalAreaScope() {
+    if (!areaFilter || !nppFilter || !employeeFilter) return;
+
+    const regionSelect = document.getElementById('regionFilter');
+    const regionValue = regionSelect ? regionSelect.value : 'all';
+    const effectiveAreas = getEffectiveAllowedAreas(regionValue);
+
+    areaFilter.setAllowedAreas(effectiveAreas);
+
+    const currentArea = areaFilter.getValue();
+    if (areaHighlight) {
+        if (currentArea !== 'all') areaHighlight.highlightByArea(currentArea, false);
+        else areaHighlight.showAllAreas();
+    }
+
+    const nppsInArea = areaFilter.getNPPsByArea(currentArea);
+    nppFilter.updateOptions(nppsInArea, currentArea);
+
+    const currentNpp = nppFilter.getValue();
+    const employees = nppFilter.getEmployeesByNPP(currentNpp);
+    employeeFilter.updateOptions(employees);
 }
 
 function resetNPPAndEmployee() {
@@ -497,16 +584,20 @@ async function initApp() {
         areaFilter.setOnChangeCallback(() => applyFilters());
         nppFilter.setOnChangeCallback(() => applyFilters());
         employeeFilter.setOnChangeCallback(() => applyFilters());
+
+        const regionFilter = document.getElementById('regionFilter');
+        if (regionFilter) {
+            regionFilter.addEventListener('change', () => {
+                syncInternalAreaScope();
+                resetNPPAndEmployee();
+                applyFilters();
+            });
+        }
         
         categoryFilter.initOptions();
         productFilter.initOptions();
         
-        const initialArea = areaFilter.getValue();
-        const initialNPPs = areaFilter.getNPPsByArea(initialArea);
-        nppFilter.initOptions(initialNPPs);
-        
-        const initialEmployees = nppFilter.getEmployeesByNPP('all');
-        employeeFilter.initOptions(initialEmployees);
+        syncInternalAreaScope();
         
         if (areaHighlight) areaHighlight.showAllAreas();
         
@@ -574,12 +665,8 @@ document.addEventListener('DOMContentLoaded', () => {
         employeeFilter?.reset();
         categoryFilter?.reset();
         productFilter?.reset();
-        
-        const currentArea = areaFilter.getValue();
-        const nppsInArea = areaFilter.getNPPsByArea(currentArea);
-        nppFilter.updateOptions(nppsInArea);
-        employeeFilter.updateOptions([]);
-        
+
+        applyPermissionToAreaFilter();
         if (areaHighlight) areaHighlight.showAllAreas();
         applyFilters();
     });
