@@ -124,6 +124,17 @@ function emailToMaNv(email) {
   return local.charAt(0).toUpperCase() + local.slice(1);
 }
 
+function normalizeMaNv(maNv) {
+  if (!maNv) return '';
+  return maNv.toString().split(';')[0].trim();
+}
+
+function hasValidCoordinates(record) {
+  const lat = record?.lat;
+  const long = record?.long;
+  return lat !== null && lat !== undefined && lat !== '' && long !== null && long !== undefined && long !== '';
+}
+
 function fieldView(obj, key) {
   const f = obj?.[key];
   if (!f) return '';
@@ -167,7 +178,7 @@ function resolveStaff(record, routeById, routeByEmail) {
     orderBy.email || modified.email || assign.email || created.email || '';
   const name =
     orderBy.name || modified.name || assign.name || created.name || '';
-  const ma_nv = emailToMaNv(email);
+  const ma_nv = normalizeMaNv(emailToMaNv(email));
   let npp = routeByEmail.get(email) || '';
 
   const routeIds = settings?.addNew?.routeid;
@@ -178,7 +189,7 @@ function resolveStaff(record, routeById, routeByEmail) {
     if (routeInfo?.ma_nv && !ma_nv) {
       return {
         npp: npp || routeInfo.npp,
-        ma_nv: routeInfo.ma_nv,
+        ma_nv: normalizeMaNv(routeInfo.ma_nv),
         ten_nv: name || routeInfo.ten_nv,
       };
     }
@@ -204,7 +215,7 @@ function transformCustomer(record, routeById, routeByEmail) {
     kenh: fieldView(d, 'kenh'),
     anh,
     npp: staff.npp,
-    ma_nv: staff.ma_nv,
+    ma_nv: normalizeMaNv(staff.ma_nv),
     ten_nv: staff.ten_nv,
   };
 }
@@ -228,8 +239,9 @@ async function fetchAllCustomers() {
 
     for (const rec of batch) {
       if (rec.isDeleted) continue;
+      if (!hasValidCoordinates(rec)) continue;
       const row = transformCustomer(rec, routeById, routeByEmail);
-      if (row.ma_kh) all.push(row);
+      if (row.ma_kh && row.ma_nv && row.npp) all.push(row);
     }
 
     console.log(`  Khách hàng: skip=${skip}, +${batch.length} (tổng ${all.length})`);
