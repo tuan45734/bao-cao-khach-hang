@@ -3,7 +3,7 @@
  *
  * Chạy: node scripts/sync-mobiwork-data.js
  * Tùy chọn:
- *   --month=5 --year=2026
+ *   --month=6 --year=2026
  *   --bills-only | --customers-only | --merge-only
  *   --bill-json=path   (nếu OpenAPI Bill lỗi auth, export JSON từ Postman rồi trỏ file này)
  *
@@ -57,7 +57,7 @@ const CUSTOMER_BODY = {
 
 function parseArgs(argv) {
   const opts = {
-    month: 5,
+    month: 6,
     year: 2026,
     billsOnly: false,
     customersOnly: false,
@@ -427,6 +427,7 @@ const MONTH_FILES = [
   { month: 3, file: 'nh-3-2026.js', var: 'categoryMapping_3_2026' },
   { month: 4, file: 'nh-4-2026.js', var: 'categoryMapping_4_2026' },
   { month: 5, file: 'nh-5-2026.js', var: 'categoryMapping_5_2026' },
+  { month: 6, file: 'nh-6-2026.js', var: 'categoryMapping_6_2026' },
 ];
 
 async function mergeAllMonths() {
@@ -513,10 +514,10 @@ async function main() {
   }
 
   if (billsOk && !opts.customersOnly && !opts.billsOnly) {
-    console.log('\n[3] Gộp tháng 1-5 -> nh-all.js');
+    console.log('\n[3] Gộp tháng 1-6 -> nh-all.js');
     await mergeAllMonths();
   } else if (billsOk && opts.billsOnly) {
-    console.log('\n[3] Gộp tháng 1-5 -> nh-all.js');
+    console.log('\n[3] Gộp tháng 1-6 -> nh-all.js');
     await mergeAllMonths();
   }
 

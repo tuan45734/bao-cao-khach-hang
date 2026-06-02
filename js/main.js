@@ -168,7 +168,7 @@ async function loadCategoryData(monthKey) {
 }
 
 async function initCategoryData() {
-    const months = ['1-2026', '2-2026', '3-2026', '4-2026', '5-2026'];
+    const months = ['1-2026', '2-2026', '3-2026', '4-2026', '5-2026', '6-2026'];
     for (const month of months) await loadCategoryData(month);
 }
 
